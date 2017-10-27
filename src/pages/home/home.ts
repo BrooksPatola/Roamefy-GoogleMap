@@ -60,14 +60,18 @@ addMarkersMap(markers){
   {
     var loc = marker.calEvent.locations[0]['coords'];
     //let creates a variable declaration for each loop which is block level declaration. 
-    let name  = marker.calEvent['eventName'];
+    let name  = marker.calEvent["eventName"];
     let webSite = marker.calEvent["eventWebsite"];
     let description = marker.calEvent["description"];
     let orgPhone  = marker.calEvent["orgPhone"];
+    let categories = marker.calEvent["categoryString"];
+ 
     //variable to pass into setContent of infoWindow
-    let contentString = '<h1>' + name +'</h1>'+ '<p><b>website: </b> ' + webSite + '</p>' +
-                                                '<p><b>description: </b> ' + description + '</p>' +
-                                                '<p><b>phone: </b> ' + orgPhone + '</p>'
+    let contentString = '<h1>' + name +'</h1>'+ '<p><b>description: </b> '  +  description + '</p>'   +
+                                               //'<p><b>description: </b> '  +   webSite + '</p>'   +   
+                                               '<p><b>website: </b>' + '<a href="  '+ webSite +'     ">'  +  'link'     +       '</a>'    +              
+                                                '<p><b>phone: </b> '        +  orgPhone    + '</p>'   +                                          
+                                                '<p><b>category(s): </b> '  +  categories  + '</p>'
 
     
 
