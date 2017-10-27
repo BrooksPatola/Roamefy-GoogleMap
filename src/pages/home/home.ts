@@ -59,31 +59,40 @@ addMarkersMap(markers){
   for(let marker of markers)
   {
     var loc = marker.calEvent.locations[0]['coords'];
+    //let creates a variable declaration for each loop which is block level declaration. 
+    let name  = marker.calEvent['eventName'];
+    let webSite = marker.calEvent["eventWebsite"];
+    let description = marker.calEvent["description"];
+    let orgPhone  = marker.calEvent["orgPhone"];
+    //variable to pass into setContent of infoWindow
+    let contentString = '<h1>' + name +'</h1>'+ '<p><b>website: </b> ' + webSite + '</p>' +
+                                                '<p><b>description: </b> ' + description + '</p>' +
+                                                '<p><b>phone: </b> ' + orgPhone + '</p>'
 
+    
 
-      console.log(loc);
+      console.log(name); //displays name of each event within this object
    
       
       marker = new google.maps.Marker({
        position: loc,
       map: this.map,
-  
       
       });
 
 
       var infoWindow = new google.maps.InfoWindow({
-       
-      content: ""
-    }); 
+        
+          
+        }); 
 
-    google.maps.event.addListener(marker, 'click', function(str)
-    { 
-       return function() {
-               infoWindow.setContent(str);
-               infoWindow.open(this.map, marker);
-                         }
-    }(markers.eventName));
+      
+          google.maps.event.addListener(marker, 'click', function() {
+            infoWindow.open(this.map, marker);
+            infoWindow.setContent(contentString);
+            
+          });
+       
     
 
 }
