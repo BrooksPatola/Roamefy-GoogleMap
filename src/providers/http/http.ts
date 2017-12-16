@@ -1,7 +1,6 @@
-
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Http } from '@angular/http';
-import 'rxjs/add/operator/map';
+
 
 /*
   Generated class for the HttpProvider provider.
@@ -11,7 +10,9 @@ import 'rxjs/add/operator/map';
 @Injectable()
 export class HttpProvider {
 
-  constructor(public http: Http) {
+  api: string = 'http://app.toronto.ca/cc_sr_v1_app/data/edc_eventcal_APR';
+
+  constructor(public http: HttpClient) {
     console.log('Hello HttpProvider Provider');
   }
   
@@ -19,7 +20,18 @@ export class HttpProvider {
   http.get is used to fetch data from web service and map is used to manipulate data. 
   Json() is called on the response to return data.
 */
-  getJsonData(){
-    return this.http.get('http://app.toronto.ca/cc_sr_v1_app/data/edc_eventcal_APR?limit=500').map(res => res.json());
-  }
+
+getJsonData(){
+  return new Promise(resolve => {
+    this.http.get(this.api).subscribe(data => {
+      resolve(data);
+      console.log(data);
+    }, err => {
+      console.log(err);
+     
+    });
+  });
+
+}
+
 }
