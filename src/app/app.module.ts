@@ -14,7 +14,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 
 import { HttpModule  } from '@angular/http';
 import { HttpProvider } from '../providers/http/http';
-
+import { HttpClientModule, HttpClient } from '@angular/common/http';
 
 
 @NgModule({
@@ -28,7 +28,8 @@ import { HttpProvider } from '../providers/http/http';
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
-    HttpModule
+    HttpModule,
+    HttpClientModule
   ],
   bootstrap: [IonicApp],
   entryComponents: [
@@ -42,6 +43,7 @@ import { HttpProvider } from '../providers/http/http';
     StatusBar,
     SplashScreen,
     {provide: ErrorHandler, useClass: IonicErrorHandler},
+    HttpClientModule,
     HttpProvider
   ]
 })
