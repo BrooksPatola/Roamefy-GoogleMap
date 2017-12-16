@@ -1,8 +1,8 @@
 import { Component , ViewChild,ElementRef } from '@angular/core';
 import { NavController } from 'ionic-angular';
-import { Http } from '@angular/http';
+import {HttpProvider} from '../../providers/http/http'; //importing provider
 import 'rxjs/add/operator/map';
-import {HttpProvider} from '../../providers/http/http'; //importing provider 
+ 
 
 declare var google: any;
 
@@ -22,7 +22,7 @@ export class HomePage {
 
 
   constructor(public navCtrl: NavController,
-    public http: Http, private httpProvider:HttpProvider) {
+     private httpProvider:HttpProvider) {
 
       this.getdata();
 
@@ -48,10 +48,8 @@ this.getMarkers();
 
 
 getMarkers(){
-    this.http.get('http://app.toronto.ca/cc_sr_v1_app/data/edc_eventcal_APR?limit=500').map((res)=>res.json()).subscribe(data=>{
-    this.addMarkersMap(data);
-  });
-
+ 
+  this.addMarkersMap(this.httpProvider.getJsonData());
 
 }
 
@@ -89,7 +87,7 @@ addMarkersMap(markers){
                                    '<div class="iw-bottom-gradient"></div>' +
                                    '</div>' //end container
 
-      console.log(name); //displays name of each event within this object
+      //console.log(name); //displays name of each event within this object
    
       
       marker = new google.maps.Marker({
@@ -169,20 +167,7 @@ addMarkersMap(markers){
 getdata(){
   
   
-  this.httpProvider.getJsonData().subscribe(
-    data => {
-  console.log(data);
-  this.eventData=JSON.parse(JSON.stringify(data));
-  console.log(this.eventData);
-  
-  },
-  err =>{
-  console.error("Error : " +err);
-  },
-  () => {
-  console.log('getData completed');
-  }
-  );
+  this.eventData=JSON.parse(JSON.stringify(this.httpProvider.getJsonData()));
   }
 
 
