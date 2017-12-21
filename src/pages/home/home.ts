@@ -1,84 +1,93 @@
-import { Component , ViewChild,ElementRef } from '@angular/core';
+import { Component , ViewChild, ElementRef } from '@angular/core';
 import { NavController } from 'ionic-angular';
-import {HttpProvider} from '../../providers/http/http'; //importing provider
+import { HttpClient } from '@angular/common/http';
 import 'rxjs/add/operator/map';
- 
 
 declare var google: any;
-
 declare var $: any;
 
 @Component({
   selector: 'page-home',
   templateUrl: 'home.html',
-  providers:[HttpProvider]
 })
+
 export class HomePage {
-
-  eventData: any;
-
   @ViewChild('map') mapElement: ElementRef;
   map: any;
+  api: string = 'http://app.toronto.ca/cc_sr_v1_app/data/edc_eventcal_APR?limit=500';
 
-
-  constructor(public navCtrl: NavController,
-     private httpProvider:HttpProvider) {
-
-      this.getdata();
-
-  }
-
+  constructor(public navCtrl: NavController, public http: HttpClient) {}
 
   ionViewDidLoad(){
-    this.displayGoogleMap();
-this.getMarkers();
+    this.http.get(this.api)
+    .subscribe(data => {
+      //this.displayGoogleMap(); // To get current user position
+      this.setDefaultMap();
+      this.addMarkersMap(data);
+    }, err => {
+      console.log(err);
+    });
+    
   }
-
-
 
   displayGoogleMap(){
-    let latLng = new google.maps.LatLng(43.653908,-79.384293);
-  let mapOptions = {
-    center:latLng,
-    zoom:12,
-    mapTypeId : google.maps.MapTypeId.ROADMAP
+    let locationOptions = {timeout: 20000, enableHighAccuracy: true};
+ 
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            let options = {
+              center: new google.maps.LatLng(position.coords.latitude, position.coords.longitude),
+              zoom: 16,
+              mapTypeId: google.maps.MapTypeId.ROADMAP
+            }
+            this.map = new google.maps.Map(this.mapElement.nativeElement, options);
+        },
+        (error) => {
+            console.log(error);
+        }, locationOptions
+    ); 
   }
-  this.map = new google.maps.Map(this.mapElement.nativeElement, mapOptions);
-}
 
+  setDefaultMap(){
+    let latLng = new google.maps.LatLng(43.653908,-79.384293);
+    let options = {
+      center:latLng,
+      zoom:12,
+      mapTypeId : google.maps.MapTypeId.ROADMAP
+    }
+    this.map = new google.maps.Map(this.mapElement.nativeElement, options);
+  }
 
-getMarkers(){
- 
-  this.addMarkersMap(this.httpProvider.getJsonData());
+  addMarkersMap(markers){
+    console.log("adding markers");
+    console.log(markers.length);
+    
+    for(let marker of markers)
+    { 
+      var loc = marker.calEvent.locations[0]["coords"];
+      let name  = marker.calEvent["eventName"];
+      let webSite = marker.calEvent["eventWebsite"];
+      let description = marker.calEvent["description"];
+      let orgPhone  = marker.calEvent["orgPhone"];
+      let categories = marker.calEvent["categoryString"];
+      let img = "http://mnlct.org/wp-content/uploads/2014/10/toronto-skyline.jpg";
 
-}
+      if( marker.calEvent["image"] !== undefined)
+        img = "https://secure.toronto.ca" + marker.calEvent["image"]["url"];
 
-
-addMarkersMap(markers){
-  for(let marker of markers)
-  {
-    var loc = marker.calEvent.locations[0]['coords'];
-    //let creates a variable declaration for each loop which is block level declaration. 
-    let name  = marker.calEvent["eventName"];
-    let webSite = marker.calEvent["eventWebsite"];
-    let description = marker.calEvent["description"];
-    let orgPhone  = marker.calEvent["orgPhone"];
-    let categories = marker.calEvent["categoryString"];
- 
- 
-  //variable to pass into setContent of infoWindow
-  let contentString =              
+      //variable to pass into setContent of infoWindow
+      let contentString =              
                     '<div id="iw-container">' +
 
                     '<div class="iw-title">' + name +'</div>' + 
                     '<div class="iw-content">' +
                     '<div class="iw-subTitle"> Description: </div>' +
-                    '<img src="http://mnlct.org/wp-content/uploads/2014/10/toronto-skyline.jpg"  height="115" width="93">' +
+                    '<img src= "' + img + '" height="115" width="93">' +
                     '<p>' + description + '</p>' +
 
                                    '<div class="iw-subTitle">Website: </div>' + '<a href="  '+ webSite +'     ">'  +  'link'     +       '</a>'    +              
                                    '<div class="iw-subTitle">Phone: </div> '   +
-                                   '<p>'    +  orgPhone    + '</p>'   +                                          
+                                   '<p>'    + orgPhone    + '</p>'   +                                          
                                    '<div class="iw-subTitle">category(s): </div> '  + 
                                    '<p>' + categories  + '</p>' +
     
@@ -86,34 +95,23 @@ addMarkersMap(markers){
                                    '</div>' + //end content
                                    '<div class="iw-bottom-gradient"></div>' +
                                    '</div>' //end container
-
       //console.log(name); //displays name of each event within this object
    
-      
       marker = new google.maps.Marker({
-       position: loc,
-      map: this.map,
-      
+        position: loc,
+        map: this.map,   
       });
 
-
       var infoWindow = new google.maps.InfoWindow({
-        
-     maxWidth: 350
-        }); 
+        maxWidth: 350
+      }); 
 
-      
-          google.maps.event.addListener(marker, 'click', function() {
+      google.maps.event.addListener(marker, 'click', function() {
+        infoWindow.open(this.map, marker);
+        infoWindow.setContent(contentString);   
+      });
 
-
-            infoWindow.open(this.map, marker);
-            infoWindow.setContent(contentString);   
-          });
-
-
-
-          google.maps.event.addListener(infoWindow, 'domready', function() {
-            
+      google.maps.event.addListener(infoWindow, 'domready', function() {        
                 // Reference to the DIV that wraps the bottom of infowindow
                 var iwOuter = $('.gm-style-iw');
             
@@ -121,6 +119,8 @@ addMarkersMap(markers){
                  * We use jQuery and create a iwBackground variable,
                  * and took advantage of the existing reference .gm-style-iw for the previous div with .prev().
                 */
+
+                
                 var iwBackground = iwOuter.prev();
             
                 // Removes background shadow DIV
@@ -130,7 +130,7 @@ addMarkersMap(markers){
                 iwBackground.children(':nth-child(4)').css({'display' : 'none'});
             
                 // Moves the infowindow 115px to the right.
-                iwOuter.parent().parent().css({left: '115px'});
+                iwOuter.parent().parent().css({left: '20px'});
             
                 // Moves the shadow of the arrow 76px to the left margin.
                 iwBackground.children(':nth-child(1)').attr('style', function(i,s){ return s + 'left: 76px !important;'});
@@ -158,19 +158,8 @@ addMarkersMap(markers){
                 });
               });
             }
+            
             //google.maps.event.addDomListener(window, 'load', initialize);
-
        
   }
- 
-
-getdata(){
-  
-  
-  this.eventData=JSON.parse(JSON.stringify(this.httpProvider.getJsonData()));
-  }
-
-
-
-  
 }
